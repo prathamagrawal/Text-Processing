@@ -1,4 +1,3 @@
-# Learn with me 
 # How NLP Model works
 
 ## Preprocessing the text 
