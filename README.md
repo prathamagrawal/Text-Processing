@@ -2,7 +2,8 @@
 
 ## Preprocessing the text 
 There are multiple steps and ways to preprocess the unstructured text data. 
-The traditional approach consists of various ways:
+The traditional approach consists of various ways:python train.py --data data/pose.yaml --cfg cfg/yolov7-w6-pose.yaml --weights weights/yolov7-w6-person.pt --batch-size 2 --img 960 --kpt-label --sync-bn --device cpu --name yolov7-w6-pose --hyp data/hyp.pose.yaml
+
 1. Removing Punctuations
     Get all Punctuations from the inbuilt library
     ```
