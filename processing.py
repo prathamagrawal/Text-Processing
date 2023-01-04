@@ -8,15 +8,14 @@ import re
 import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from bs4 import BeautifulSoup
+#from bs4 import BeautifulSoup
 import nltk
 from nltk.corpus import stopwords
 from string import punctuation
 from keras.preprocessing import sequence
 from tensorflow import keras
 import string
-from plotly.offline import init_notebook_mode
-init_notebook_mode(connected=True)
+
 
 
 # Remove all URLs, replace by URL
@@ -338,9 +337,14 @@ def clean_tweet(text):
   
     return text
 
-nltk.download('stopwords')
+# nltk.download('stopwords')
 
 def remove_stopwords(text):
     remove_stopword = [word for word in text.split() if word.lower() not in stopwords.words('english')]
     return remove_stopword
+
+train=pd.read_csv("data/data.csv",names=['ID','entity','sentiment','content'])
+print(train['content'])
+
+
 
