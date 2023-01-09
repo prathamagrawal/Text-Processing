@@ -5,14 +5,18 @@ import nltk
 import spacy
 import string
 pd.options.mode.chained_assignment = None
-from spellchecker import SpellChecker
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 import json
-from spellchecker import SpellChecker
+# from spellchecker import SpellChecker
  
+train=pd.read_csv('data/data.csv',names=['id','entity','sentiment','content'])
+train['content']=train['content'].astype(str)
+train['content']=train['content'].str.lower()
+
+
 with open('abbreviations.json') as json_file:
     abbreviations = json.load(json_file)
 
@@ -59,8 +63,6 @@ wordnet_map = {"N":wordnet.NOUN, "V":wordnet.VERB, "J":wordnet.ADJ, "R":wordnet.
 def lemmatize_words(text):
     pos_tagged_text = nltk.pos_tag(text.split())
     return " ".join([lemmatizer.lemmatize(word, wordnet_map.get(pos[0], wordnet.NOUN)) for word, pos in pos_tagged_text])
-
-
 
 EMOTICONS = {
     u":‑\)":"Happy face or smiley",
@@ -319,16 +321,16 @@ def remove_abbreviation(text):
 
 
 
-spell = SpellChecker()
-def correct_spellings(text):
-    corrected_text = []
-    misspelled_words = spell.unknown(text.split())
-    for word in text.split():
-        if word in misspelled_words:
-            corrected_text.append(spell.correction(word))
-        else:
-            corrected_text.append(word)
-    return " ".join(corrected_text)
+# spell = SpellChecker()
+# def correct_spellings(text):
+#     corrected_text = []
+#     misspelled_words = spell.unknown(text.split())
+#     for word in text.split():
+#         if word in misspelled_words:
+#             corrected_text.append(spell.correction(word))
+#         else:
+#             corrected_text.append(word)
+#     return " ".join(corrected_text)
 
 
 def clean_text(text):
@@ -342,9 +344,13 @@ def clean_text(text):
     return cleantext
 
 
-train=pd.read_csv('data/data.csv',names=['id','entity','sentiment','content'])
-train.head()
-
 #conversions
-train['content']=train['content'].astype(str)
-train['content']=train['content'].str.lower()
+train['content']=train['content'].apply(remove_punctuation)
+train['content']=train['content'].apply(remove_stopwords)
+train['content']=train['content'].apply(remove_freqwords)
+train['content']=train['content'].apply(remove_rarewords)
+train['content']=train['content'].apply(stem_words)
+train['content']=train['content'].apply(lemmatize_words)
+train['content']=train['content'].apply(clean_text)
+
+print(train['content'][0])
