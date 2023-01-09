@@ -1,61 +1,290 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import warnings
-warnings.filterwarnings('ignore')
 import re
-import tensorflow as tf
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-#from bs4 import BeautifulSoup
 import nltk
-from nltk.corpus import stopwords
-from string import punctuation
-from keras.preprocessing import sequence
-from tensorflow import keras
+import spacy
 import string
+pd.options.mode.chained_assignment = None
+from spellchecker import SpellChecker
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+from nltk.corpus import wordnet
+from nltk.stem import WordNetLemmatizer
+import json
+from spellchecker import SpellChecker
+ 
+with open('abbreviations.json') as json_file:
+    abbreviations = json.load(json_file)
+
+#functions 
+PUNCT_TO_REMOVE = string.punctuation
+def remove_punctuation(text):
+    """custom function to remove the punctuation"""
+    return text.translate(str.maketrans('', '', PUNCT_TO_REMOVE))
 
 
+", ".join(stopwords.words('english'))
+STOPWORDS = set(stopwords.words('english'))
+def remove_stopwords(text):
+    return " ".join([word for word in str(text).split() if word not in STOPWORDS])
 
-# Remove all URLs, replace by URL
-def remove_URL(text):
-    url = re.compile(r'https?://\S+|www\.\S+')
-    return url.sub(r'URL',text)
 
-# Remove HTML beacon
-def remove_HTML(text):
-    html=re.compile(r'<.*?>')
-    return html.sub(r'',text)
-
-# Remove non printable characters
-def remove_not_ASCII(text):
-    text = ''.join([word for word in text if word in string.printable])
-    return text
-
-# Change an abbreviation by its true meaning
-def word_abbrev(word):
-    return abbreviations[word.lower()] if word.lower() in abbreviations.keys() else word
-
-# Replace all abbreviations
-def replace_abbrev(text):
-    string = ""
+from collections import Counter
+cnt = Counter()
+for text in train["content"].values:
     for word in text.split():
-        string += word_abbrev(word) + " "        
-    return string
+        cnt[word] += 1
 
-# Remove @ and mention, replace by USER
-def remove_mention(text):
-    at=re.compile(r'@\S+')
-    return at.sub(r'USER',text)
 
-# Remove numbers, replace it by NUMBER
-def remove_number(text):
-    num = re.compile(r'[-+]?[.\d]*[\d]+[:,.\d]*')
-    return num.sub(r'NUMBER', text)
+FREQWORDS = set([w for (w, wc) in cnt.most_common(10)])
+def remove_freqwords(text):
+    """custom function to remove the frequent words"""
+    return " ".join([word for word in str(text).split() if word not in FREQWORDS])
 
-# Remove all emojis, replace by EMOJI
-def remove_emoji(text):
+
+n_rare_words = 10
+RAREWORDS = set([w for (w, wc) in cnt.most_common()[:-n_rare_words-1:-1]])
+def remove_rarewords(text):
+    """custom function to remove the rare words"""
+    return " ".join([word for word in str(text).split() if word not in RAREWORDS])
+
+
+stemmer = PorterStemmer()
+def stem_words(text):
+    return " ".join([stemmer.stem(word) for word in text.split()])
+
+
+lemmatizer = WordNetLemmatizer()
+wordnet_map = {"N":wordnet.NOUN, "V":wordnet.VERB, "J":wordnet.ADJ, "R":wordnet.ADV}
+def lemmatize_words(text):
+    pos_tagged_text = nltk.pos_tag(text.split())
+    return " ".join([lemmatizer.lemmatize(word, wordnet_map.get(pos[0], wordnet.NOUN)) for word, pos in pos_tagged_text])
+
+
+
+EMOTICONS = {
+    u":‑\)":"Happy face or smiley",
+    u":\)":"Happy face or smiley",
+    u":-\]":"Happy face or smiley",
+    u":\]":"Happy face or smiley",
+    u":-3":"Happy face smiley",
+    u":3":"Happy face smiley",
+    u":->":"Happy face smiley",
+    u":>":"Happy face smiley",
+    u"8-\)":"Happy face smiley",
+    u":o\)":"Happy face smiley",
+    u":-\}":"Happy face smiley",
+    u":\}":"Happy face smiley",
+    u":-\)":"Happy face smiley",
+    u":c\)":"Happy face smiley",
+    u":\^\)":"Happy face smiley",
+    u"=\]":"Happy face smiley",
+    u"=\)":"Happy face smiley",
+    u":‑D":"Laughing, big grin or laugh with glasses",
+    u":D":"Laughing, big grin or laugh with glasses",
+    u"8‑D":"Laughing, big grin or laugh with glasses",
+    u"8D":"Laughing, big grin or laugh with glasses",
+    u"X‑D":"Laughing, big grin or laugh with glasses",
+    u"XD":"Laughing, big grin or laugh with glasses",
+    u"=D":"Laughing, big grin or laugh with glasses",
+    u"=3":"Laughing, big grin or laugh with glasses",
+    u"B\^D":"Laughing, big grin or laugh with glasses",
+    u":-\)\)":"Very happy",
+    u":‑\(":"Frown, sad, andry or pouting",
+    u":-\(":"Frown, sad, andry or pouting",
+    u":\(":"Frown, sad, andry or pouting",
+    u":‑c":"Frown, sad, andry or pouting",
+    u":c":"Frown, sad, andry or pouting",
+    u":‑<":"Frown, sad, andry or pouting",
+    u":<":"Frown, sad, andry or pouting",
+    u":‑\[":"Frown, sad, andry or pouting",
+    u":\[":"Frown, sad, andry or pouting",
+    u":-\|\|":"Frown, sad, andry or pouting",
+    u">:\[":"Frown, sad, andry or pouting",
+    u":\{":"Frown, sad, andry or pouting",
+    u":@":"Frown, sad, andry or pouting",
+    u">:\(":"Frown, sad, andry or pouting",
+    u":'‑\(":"Crying",
+    u":'\(":"Crying",
+    u":'‑\)":"Tears of happiness",
+    u":'\)":"Tears of happiness",
+    u"D‑':":"Horror",
+    u"D:<":"Disgust",
+    u"D:":"Sadness",
+    u"D8":"Great dismay",
+    u"D;":"Great dismay",
+    u"D=":"Great dismay",
+    u"DX":"Great dismay",
+    u":‑O":"Surprise",
+    u":O":"Surprise",
+    u":‑o":"Surprise",
+    u":o":"Surprise",
+    u":-0":"Shock",
+    u"8‑0":"Yawn",
+    u">:O":"Yawn",
+    u":-\*":"Kiss",
+    u":\*":"Kiss",
+    u":X":"Kiss",
+    u";‑\)":"Wink or smirk",
+    u";\)":"Wink or smirk",
+    u"\*-\)":"Wink or smirk",
+    u"\*\)":"Wink or smirk",
+    u";‑\]":"Wink or smirk",
+    u";\]":"Wink or smirk",
+    u";\^\)":"Wink or smirk",
+    u":‑,":"Wink or smirk",
+    u";D":"Wink or smirk",
+    u":‑P":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u":P":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u"X‑P":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u"XP":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u":‑Þ":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u":Þ":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u":b":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u"d:":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u"=p":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u">:P":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u":‑/":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u":/":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u":-[.]":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u">:[(\\\)]":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u">:/":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u":[(\\\)]":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u"=/":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u"=[(\\\)]":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u":L":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u"=L":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u":S":"Skeptical, annoyed, undecided, uneasy or hesitant",
+    u":‑\|":"Straight face",
+    u":\|":"Straight face",
+    u":$":"Embarrassed or blushing",
+    u":‑x":"Sealed lips or wearing braces or tongue-tied",
+    u":x":"Sealed lips or wearing braces or tongue-tied",
+    u":‑#":"Sealed lips or wearing braces or tongue-tied",
+    u":#":"Sealed lips or wearing braces or tongue-tied",
+    u":‑&":"Sealed lips or wearing braces or tongue-tied",
+    u":&":"Sealed lips or wearing braces or tongue-tied",
+    u"O:‑\)":"Angel, saint or innocent",
+    u"O:\)":"Angel, saint or innocent",
+    u"0:‑3":"Angel, saint or innocent",
+    u"0:3":"Angel, saint or innocent",
+    u"0:‑\)":"Angel, saint or innocent",
+    u"0:\)":"Angel, saint or innocent",
+    u":‑b":"Tongue sticking out, cheeky, playful or blowing a raspberry",
+    u"0;\^\)":"Angel, saint or innocent",
+    u">:‑\)":"Evil or devilish",
+    u">:\)":"Evil or devilish",
+    u"\}:‑\)":"Evil or devilish",
+    u"\}:\)":"Evil or devilish",
+    u"3:‑\)":"Evil or devilish",
+    u"3:\)":"Evil or devilish",
+    u">;\)":"Evil or devilish",
+    u"\|;‑\)":"Cool",
+    u"\|‑O":"Bored",
+    u":‑J":"Tongue-in-cheek",
+    u"#‑\)":"Party all night",
+    u"%‑\)":"Drunk or confused",
+    u"%\)":"Drunk or confused",
+    u":-###..":"Being sick",
+    u":###..":"Being sick",
+    u"<:‑\|":"Dump",
+    u"\(>_<\)":"Troubled",
+    u"\(>_<\)>":"Troubled",
+    u"\(';'\)":"Baby",
+    u"\(\^\^>``":"Nervous or Embarrassed or Troubled or Shy or Sweat drop",
+    u"\(\^_\^;\)":"Nervous or Embarrassed or Troubled or Shy or Sweat drop",
+    u"\(-_-;\)":"Nervous or Embarrassed or Troubled or Shy or Sweat drop",
+    u"\(~_~;\) \(・\.・;\)":"Nervous or Embarrassed or Troubled or Shy or Sweat drop",
+    u"\(-_-\)zzz":"Sleeping",
+    u"\(\^_-\)":"Wink",
+    u"\(\(\+_\+\)\)":"Confused",
+    u"\(\+o\+\)":"Confused",
+    u"\(o\|o\)":"Ultraman",
+    u"\^_\^":"Joyful",
+    u"\(\^_\^\)/":"Joyful",
+    u"\(\^O\^\)／":"Joyful",
+    u"\(\^o\^\)／":"Joyful",
+    u"\(__\)":"Kowtow as a sign of respect, or dogeza for apology",
+    u"_\(\._\.\)_":"Kowtow as a sign of respect, or dogeza for apology",
+    u"<\(_ _\)>":"Kowtow as a sign of respect, or dogeza for apology",
+    u"<m\(__\)m>":"Kowtow as a sign of respect, or dogeza for apology",
+    u"m\(__\)m":"Kowtow as a sign of respect, or dogeza for apology",
+    u"m\(_ _\)m":"Kowtow as a sign of respect, or dogeza for apology",
+    u"\('_'\)":"Sad or Crying",
+    u"\(/_;\)":"Sad or Crying",
+    u"\(T_T\) \(;_;\)":"Sad or Crying",
+    u"\(;_;":"Sad of Crying",
+    u"\(;_:\)":"Sad or Crying",
+    u"\(;O;\)":"Sad or Crying",
+    u"\(:_;\)":"Sad or Crying",
+    u"\(ToT\)":"Sad or Crying",
+    u";_;":"Sad or Crying",
+    u";-;":"Sad or Crying",
+    u";n;":"Sad or Crying",
+    u";;":"Sad or Crying",
+    u"Q\.Q":"Sad or Crying",
+    u"T\.T":"Sad or Crying",
+    u"QQ":"Sad or Crying",
+    u"Q_Q":"Sad or Crying",
+    u"\(-\.-\)":"Shame",
+    u"\(-_-\)":"Shame",
+    u"\(一一\)":"Shame",
+    u"\(；一_一\)":"Shame",
+    u"\(=_=\)":"Tired",
+    u"\(=\^\·\^=\)":"cat",
+    u"\(=\^\·\·\^=\)":"cat",
+    u"=_\^=	":"cat",
+    u"\(\.\.\)":"Looking down",
+    u"\(\._\.\)":"Looking down",
+    u"\^m\^":"Giggling with hand covering mouth",
+    u"\(\・\・?":"Confusion",
+    u"\(?_?\)":"Confusion",
+    u">\^_\^<":"Normal Laugh",
+    u"<\^!\^>":"Normal Laugh",
+    u"\^/\^":"Normal Laugh",
+    u"\（\*\^_\^\*）" :"Normal Laugh",
+    u"\(\^<\^\) \(\^\.\^\)":"Normal Laugh",
+    u"\(^\^\)":"Normal Laugh",
+    u"\(\^\.\^\)":"Normal Laugh",
+    u"\(\^_\^\.\)":"Normal Laugh",
+    u"\(\^_\^\)":"Normal Laugh",
+    u"\(\^\^\)":"Normal Laugh",
+    u"\(\^J\^\)":"Normal Laugh",
+    u"\(\*\^\.\^\*\)":"Normal Laugh",
+    u"\(\^—\^\）":"Normal Laugh",
+    u"\(#\^\.\^#\)":"Normal Laugh",
+    u"\（\^—\^\）":"Waving",
+    u"\(;_;\)/~~~":"Waving",
+    u"\(\^\.\^\)/~~~":"Waving",
+    u"\(-_-\)/~~~ \($\·\·\)/~~~":"Waving",
+    u"\(T_T\)/~~~":"Waving",
+    u"\(ToT\)/~~~":"Waving",
+    u"\(\*\^0\^\*\)":"Excited",
+    u"\(\*_\*\)":"Amazed",
+    u"\(\*_\*;":"Amazed",
+    u"\(\+_\+\) \(@_@\)":"Amazed",
+    u"\(\*\^\^\)v":"Laughing,Cheerful",
+    u"\(\^_\^\)v":"Laughing,Cheerful",
+    u"\(\(d[-_-]b\)\)":"Headphones,Listening to music",
+    u'\(-"-\)':"Worried",
+    u"\(ーー;\)":"Worried",
+    u"\(\^0_0\^\)":"Eyeglasses",
+    u"\(\＾ｖ\＾\)":"Happy",
+    u"\(\＾ｕ\＾\)":"Happy",
+    u"\(\^\)o\(\^\)":"Happy",
+    u"\(\^O\^\)":"Happy",
+    u"\(\^o\^\)":"Happy",
+    u"\)\^o\^\(":"Happy",
+    u":O o_O":"Surprised",
+    u"o_0":"Surprised",
+    u"o\.O":"Surpised",
+    u"\(o\.o\)":"Surprised",
+    u"oO":"Surprised",
+    u"\(\*￣m￣\)":"Dissatisfied",
+    u"\(‘A`\)":"Snubbed or Deflated"
+}
+
+def remove_emoji(string):
     emoji_pattern = re.compile("["
                            u"\U0001F600-\U0001F64F"  # emoticons
                            u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -64,287 +293,58 @@ def remove_emoji(text):
                            u"\U00002702-\U000027B0"
                            u"\U000024C2-\U0001F251"
                            "]+", flags=re.UNICODE)
-    return emoji_pattern.sub(r'EMOJI', text)
+    return emoji_pattern.sub(r'', string)
 
-# Replace some others smileys with SADFACE
-def transcription_sad(text):
-    eyes = "[8:=;]"
-    nose = "['`\-]"
-    smiley = re.compile(r'[8:=;][\'\-]?[(\\/]')
-    return smiley.sub(r'SADFACE', text)
+def remove_emoticons(text):
+    emoticon_pattern = re.compile(u'(' + u'|'.join(k for k in EMOTICONS) + u')')
+    return emoticon_pattern.sub(r'', text)
 
-# Replace some smileys with SMILE
-def transcription_smile(text):
-    eyes = "[8:=;]"
-    nose = "['`\-]"
-    smiley = re.compile(r'[8:=;][\'\-]?[)dDp]')
-    #smiley = re.compile(r'#{eyes}#{nose}[)d]+|[)d]+#{nose}#{eyes}/i')
-    return smiley.sub(r'SMILE', text)
+def remove_urls(text):
+    url_pattern = re.compile(r'https?://\S+|www\.\S+')
+    return url_pattern.sub(r'', text)
 
-# Replace <3 with HEART
-def transcription_heart(text):
-    heart = re.compile(r'<3')
-    return heart.sub(r'HEART', text)
+def remove_html(text):
+    html_pattern = re.compile('<.*?>')
+    return html_pattern.sub(r'', text)
+
+def remove_abbreviation(text):
+    new_text = []
+    for w in text.split():
+        if w.lower() in list(abbreviations.keys()):
+            new_text.append(abbreviations[w.lower()])
+        else:
+            new_text.append(w)
+    return " ".join(new_text)
 
 
-abbreviations = {
-    "$" : " dollar ",
-    "€" : " euro ",
-    "4ao" : "for adults only",
-    "a.m" : "before midday",
-    "a3" : "anytime anywhere anyplace",
-    "aamof" : "as a matter of fact",
-    "acct" : "account",
-    "adih" : "another day in hell",
-    "afaic" : "as far as i am concerned",
-    "afaict" : "as far as i can tell",
-    "afaik" : "as far as i know",
-    "afair" : "as far as i remember",
-    "afk" : "away from keyboard",
-    "app" : "application",
-    "approx" : "approximately",
-    "apps" : "applications",
-    "asap" : "as soon as possible",
-    "asl" : "age, sex, location",
-    "atk" : "at the keyboard",
-    "ave." : "avenue",
-    "aymm" : "are you my mother",
-    "ayor" : "at your own risk", 
-    "b&b" : "bed and breakfast",
-    "b+b" : "bed and breakfast",
-    "b.c" : "before christ",
-    "b2b" : "business to business",
-    "b2c" : "business to customer",
-    "b4" : "before",
-    "b4n" : "bye for now",
-    "b@u" : "back at you",
-    "bae" : "before anyone else",
-    "bak" : "back at keyboard",
-    "bbbg" : "bye bye be good",
-    "bbc" : "british broadcasting corporation",
-    "bbias" : "be back in a second",
-    "bbl" : "be back later",
-    "bbs" : "be back soon",
-    "be4" : "before",
-    "bfn" : "bye for now",
-    "blvd" : "boulevard",
-    "bout" : "about",
-    "brb" : "be right back",
-    "bros" : "brothers",
-    "brt" : "be right there",
-    "bsaaw" : "big smile and a wink",
-    "btw" : "by the way",
-    "bwl" : "bursting with laughter",
-    "c/o" : "care of",
-    "cet" : "central european time",
-    "cf" : "compare",
-    "cia" : "central intelligence agency",
-    "csl" : "can not stop laughing",
-    "cu" : "see you",
-    "cul8r" : "see you later",
-    "cv" : "curriculum vitae",
-    "cwot" : "complete waste of time",
-    "cya" : "see you",
-    "cyt" : "see you tomorrow",
-    "dae" : "does anyone else",
-    "dbmib" : "do not bother me i am busy",
-    "diy" : "do it yourself",
-    "dm" : "direct message",
-    "dwh" : "during work hours",
-    "e123" : "easy as one two three",
-    "eet" : "eastern european time",
-    "eg" : "example",
-    "embm" : "early morning business meeting",
-    "encl" : "enclosed",
-    "encl." : "enclosed",
-    "etc" : "and so on",
-    "faq" : "frequently asked questions",
-    "fawc" : "for anyone who cares",
-    "fb" : "facebook",
-    "fc" : "fingers crossed",
-    "fig" : "figure",
-    "fimh" : "forever in my heart", 
-    "ft." : "feet",
-    "ft" : "featuring",
-    "ftl" : "for the loss",
-    "ftw" : "for the win",
-    "fwiw" : "for what it is worth",
-    "fyi" : "for your information",
-    "g9" : "genius",
-    "gahoy" : "get a hold of yourself",
-    "gal" : "get a life",
-    "gcse" : "general certificate of secondary education",
-    "gfn" : "gone for now",
-    "gg" : "good game",
-    "gl" : "good luck",
-    "glhf" : "good luck have fun",
-    "gmt" : "greenwich mean time",
-    "gmta" : "great minds think alike",
-    "gn" : "good night",
-    "g.o.a.t" : "greatest of all time",
-    "goat" : "greatest of all time",
-    "goi" : "get over it",
-    "gps" : "global positioning system",
-    "gr8" : "great",
-    "gratz" : "congratulations",
-    "gyal" : "girl",
-    "h&c" : "hot and cold",
-    "hp" : "horsepower",
-    "hr" : "hour",
-    "hrh" : "his royal highness",
-    "ht" : "height",
-    "ibrb" : "i will be right back",
-    "ic" : "i see",
-    "icq" : "i seek you",
-    "icymi" : "in case you missed it",
-    "idc" : "i do not care",
-    "idgadf" : "i do not give a damn fuck",
-    "idgaf" : "i do not give a fuck",
-    "idk" : "i do not know",
-    "ie" : "that is",
-    "i.e" : "that is",
-    "ifyp" : "i feel your pain",
-    "IG" : "instagram",
-    "iirc" : "if i remember correctly",
-    "ilu" : "i love you",
-    "ily" : "i love you",
-    "imho" : "in my humble opinion",
-    "imo" : "in my opinion",
-    "imu" : "i miss you",
-    "iow" : "in other words",
-    "irl" : "in real life",
-    "j4f" : "just for fun",
-    "jic" : "just in case",
-    "jk" : "just kidding",
-    "jsyk" : "just so you know",
-    "l8r" : "later",
-    "lb" : "pound",
-    "lbs" : "pounds",
-    "ldr" : "long distance relationship",
-    "lmao" : "laugh my ass off",
-    "lmfao" : "laugh my fucking ass off",
-    "lol" : "laughing out loud",
-    "ltd" : "limited",
-    "ltns" : "long time no see",
-    "m8" : "mate",
-    "mf" : "motherfucker",
-    "mfs" : "motherfuckers",
-    "mfw" : "my face when",
-    "mofo" : "motherfucker",
-    "mph" : "miles per hour",
-    "mr" : "mister",
-    "mrw" : "my reaction when",
-    "ms" : "miss",
-    "mte" : "my thoughts exactly",
-    "nagi" : "not a good idea",
-    "nbc" : "national broadcasting company",
-    "nbd" : "not big deal",
-    "nfs" : "not for sale",
-    "ngl" : "not going to lie",
-    "nhs" : "national health service",
-    "nrn" : "no reply necessary",
-    "nsfl" : "not safe for life",
-    "nsfw" : "not safe for work",
-    "nth" : "nice to have",
-    "nvr" : "never",
-    "nyc" : "new york city",
-    "oc" : "original content",
-    "og" : "original",
-    "ohp" : "overhead projector",
-    "oic" : "oh i see",
-    "omdb" : "over my dead body",
-    "omg" : "oh my god",
-    "omw" : "on my way",
-    "p.a" : "per annum",
-    "p.m" : "after midday",
-    "pm" : "prime minister",
-    "poc" : "people of color",
-    "pov" : "point of view",
-    "pp" : "pages",
-    "ppl" : "people",
-    "prw" : "parents are watching",
-    "ps" : "postscript",
-    "pt" : "point",
-    "ptb" : "please text back",
-    "pto" : "please turn over",
-    "qpsa" : "what happens",
-    "ratchet" : "rude",
-    "rbtl" : "read between the lines",
-    "rlrt" : "real life retweet", 
-    "rofl" : "rolling on the floor laughing",
-    "roflol" : "rolling on the floor laughing out loud",
-    "rotflmao" : "rolling on the floor laughing my ass off",
-    "rt" : "retweet",
-    "ruok" : "are you ok",
-    "sfw" : "safe for work",
-    "sk8" : "skate",
-    "smh" : "shake my head",
-    "sq" : "square",
-    "srsly" : "seriously", 
-    "ssdd" : "same stuff different day",
-    "tbh" : "to be honest",
-    "tbs" : "tablespooful",
-    "tbsp" : "tablespooful",
-    "tfw" : "that feeling when",
-    "thks" : "thank you",
-    "tho" : "though",
-    "thx" : "thank you",
-    "tia" : "thanks in advance",
-    "til" : "today i learned",
-    "tl;dr" : "too long i did not read",
-    "tldr" : "too long i did not read",
-    "tmb" : "tweet me back",
-    "tntl" : "trying not to laugh",
-    "ttyl" : "talk to you later",
-    "u" : "you",
-    "u2" : "you too",
-    "u4e" : "yours for ever",
-    "utc" : "coordinated universal time",
-    "w/" : "with",
-    "w/o" : "without",
-    "w8" : "wait",
-    "wassup" : "what is up",
-    "wb" : "welcome back",
-    "wtf" : "what the fuck",
-    "wtg" : "way to go",
-    "wtpa" : "where the party at",
-    "wuf" : "where are you from",
-    "wuzup" : "what is up",
-    "wywh" : "wish you were here",
-    "yd" : "yard",
-    "ygtr" : "you got that right",
-    "ynk" : "you never know",
-    "zzz" : "sleeping bored and tired"
-}
 
-def clean_tweet(text):
+
+spell = SpellChecker()
+def correct_spellings(text):
+    corrected_text = []
+    misspelled_words = spell.unknown(text.split())
+    for word in text.split():
+        if word in misspelled_words:
+            corrected_text.append(spell.correction(word))
+        else:
+            corrected_text.append(word)
+    return " ".join(corrected_text)
+
+
+def clean_text(text):
+    cleantext=remove_emoji(text)
+    cleantext=remove_emoticons(cleantext)
+    cleantext=remove_urls(cleantext)
+    cleantext=remove_html(cleantext)
     
-    # Remove non text
-    text = remove_URL(text)
-    text = remove_HTML(text)
-    text = remove_not_ASCII(text)
-    
-    # replace abbreviations, @ and number
-    text = replace_abbrev(text)  
-    text = remove_mention(text)
-    text = remove_number(text)
-    
-    # Remove emojis / smileys
-    text = remove_emoji(text)
-    text = transcription_sad(text)
-    text = transcription_smile(text)
-    text = transcription_heart(text)
-  
-    return text
+    cleantext=remove_abbreviation(cleantext)
 
-# nltk.download('stopwords')
-
-def remove_stopwords(text):
-    remove_stopword = [word for word in text.split() if word.lower() not in stopwords.words('english')]
-    return remove_stopword
-
-train=pd.read_csv("data/data.csv",names=['ID','entity','sentiment','content'])
-print(train['content'])
+    return cleantext
 
 
+train=pd.read_csv('data/data.csv',names=['id','entity','sentiment','content'])
+train.head()
 
+#conversions
+train['content']=train['content'].astype(str)
+train['content']=train['content'].str.lower()
