@@ -1,24 +1,18 @@
 <html>
     <title>Texty</title>
     <head>
-            <!--  Load CSS in Flask with html-->
                 <link rel="stylesheet" href='/static/main.css' />
-             
-            <!--  Load JavaScript in Flask with html-->
-              <!-- <script>
-                alert("Page has been loaded successfully")
-              </script> -->
     </head>
     <body>
-        <h1>Welcome to Texty</h1>
 
-        <h2 id ='text1'>{{text1}}</h2>
-        <form action="action.php">
-            <label for="images" class="drop-container">
-                <span class="drop-title">Drop files here</span>
-                or
-                <input type="file" id="images" accept="image/*" required>
-              </label>
-        </form>
+        <div class="drag-area">
+          <h1>Welcome to Texty</h1><br>
+          <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <header>Drag & Drop to Upload File</header>
+          <span>OR</span>
+          <button>Browse File</button>
+          <input type="file" hidden>
+        </div>
+        <script src="/static/js/script.js"></script>
     </body>
 </html>
