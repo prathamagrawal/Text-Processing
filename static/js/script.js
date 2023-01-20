@@ -37,10 +37,10 @@ function showFile(){
   let validExtensions = ["file/csv"]; 
   if(validExtensions.includes(fileType)){ 
     let fileReader = new FileReader(); 
-    fileReader.onload = ()=>{
-      let fileURL = fileReader.result;
-      dropArea.innerHTML = imgTag; 
-    }
+    // fileReader.onload = ()=>{
+    //   let fileURL = fileReader.result;
+    //   dropArea.innerHTML = imgTag; 
+    // }
     fileReader.readAsDataURL(file);
   }else{
     alert("This is not csv File!");
