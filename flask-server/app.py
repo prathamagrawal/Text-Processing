@@ -7,8 +7,9 @@ app = Flask(__name__, template_folder='templates', static_folder='static')
  
 @app.route('/')
 def index():
-    text="Upload any csv file"
-    return render_template('index.html',text1=text)
+    return "<h1>Let's get this shit done</h1>"
+    # text="Upload any csv file"
+    # return render_template('index.html',text1=text)
 
 
 
