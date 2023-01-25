@@ -1,8 +1,23 @@
 import React, { useState, useEffect } from 'react';
-function App(){
-  return <div>
+function App() {
 
-  </div>
+  const [data, setData] = useState([{}])
+
+  useEffect(() => {
+    fetch("/data").then(
+      response => response.json()
+    ).then(
+      data => {
+        setData(data)
+        console.log(data)
+      }
+    )
+  })
+  return (
+    <div>
+
+    </div>
+  )
 }
 
 export default App
