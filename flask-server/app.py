@@ -5,9 +5,9 @@ from werkzeug.utils import secure_filename
     
 app = Flask(__name__, template_folder='templates', static_folder='static')
  
-@app.route('/')
-def index():
-    return "<h1>Let's get this shit done</h1>"
+@app.route('/data')
+def data():
+    return {"Flask Server":"Pratham"}
     # text="Upload any csv file"
     # return render_template('index.html',text1=text)
 
