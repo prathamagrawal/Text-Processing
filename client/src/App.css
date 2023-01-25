@@ -28,6 +28,56 @@
   color: #61dafb;
 }
 
+.container {
+  font-family:'Courier New', Courier, monospace;
+  text-align: center;
+  align-items: center;
+  background-image: linear-gradient(to left, #e0433b,#4f52cb);
+}
+
+.dragzone{
+  border: 2px dashed black;
+  height: 500px;
+  width: 700px;
+  border-radius: 5px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.dragzone.active{
+  border: 2px solid #fff;
+}
+.dragzone .icon{
+  font-size: 100px;
+  color: #fff;
+}
+.dragzone header{
+  font-size: 30px;
+  font-weight: 500;
+  color: #fff;
+}
+.dragzone span{
+  font-size: 25px;
+  font-weight: 500;
+  color: #fff;
+  margin: 10px 0 15px 0;
+}
+.dragzone button{
+  font-family: 'Courier New', Courier, monospace;
+  padding: 10px 25px;
+  font-size: 20px;
+  font-weight: bolder;
+  border: none;
+  outline: none;
+  background: #fff;
+  color: black;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -36,3 +86,6 @@
     transform: rotate(360deg);
   }
 }
+
+
+ 
