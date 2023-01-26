@@ -5,11 +5,13 @@ const UploadFile = () => {
 
     return (
         <>{!files && (
-            <div className="dragzone">
-                <h2>Drag and drop files to upload</h2>
-                <h2> or </h2>
-                <button> Select files</button>
-            </div>
+            // <body>
+                <div className="dragzone">
+                    <h2>Drag and drop files to upload</h2>
+                    <h2> or </h2>
+                    <button> Select files</button>
+                </div>
+            // </body>
         )}
         </>
     );
