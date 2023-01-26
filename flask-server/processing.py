@@ -343,6 +343,8 @@ def clean_text(text):
 
     return cleantext
 
+def print_hel():
+    print("hellow")
 
 #conversions
 train['content']=train['content'].apply(remove_punctuation)

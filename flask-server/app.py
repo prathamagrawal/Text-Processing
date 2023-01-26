@@ -3,8 +3,11 @@ import pandas as pd
 from io import BytesIO
 from werkzeug.utils import secure_filename
 
+import processing as process
+process.print_hel()
 
-    
+
+
 app = Flask(__name__)
  
 @app.route('/data')
@@ -34,7 +37,9 @@ def fileUpload():
     train=train[columns]
 
 
-
+    for col in columns:
+        train[col]=train[col].astype(str)
+        train[col]=train[col].str.lower()
 
 
 
