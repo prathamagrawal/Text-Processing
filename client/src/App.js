@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import UploadFile from './components/UploadFile';
 import Home from './components/Home';
 import './App.css'
+
 function App() {
 
   // Connecting the flask server

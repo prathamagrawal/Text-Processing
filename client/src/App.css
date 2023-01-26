@@ -58,7 +58,7 @@ body{
   border-radius: 5px;
   align-items: center;
   display: flex;
-  justify-content: center;
+  justify-content : center;
   flex-direction: column;
   margin-top:10%;
 }
