@@ -28,10 +28,15 @@ def fileUpload():
     shape=train.shape[1]
     train.columns=['col'+str(i) for i in range(shape)]
     columns_to_exclude=list((train.select_dtypes(exclude=['object'])).columns)
+    columns=list((train.select_dtypes(include=['object'])).columns)
     
     res=train[columns_to_exclude]
-    train=train.drop(columns_to_exclude,axis=1)
-    
+    train=train[columns]
+
+
+
+
+
 
 
 
