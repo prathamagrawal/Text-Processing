@@ -2,10 +2,28 @@ from flask import Flask, render_template, request, session,jsonify
 import pandas as pd
 from io import BytesIO
 from werkzeug.utils import secure_filename
+from utils.preprocessing import *
+import json
 
-import processing as process
-process.print_hel()
+import numpy as np
+import pandas as pd
+import re
+import nltk
+import spacy
+import string
+pd.options.mode.chained_assignment = None
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+from nltk.corpus import wordnet
+from nltk.stem import WordNetLemmatizer
+import json
+from collections import Counter
 
+with open('/utils/abbreviations.json') as json_file:
+    abbreviations = json.load(json_file)
+PUNCT_TO_REMOVE = string.punctuation
+", ".join(stopwords.words('english'))
+FREQWORDS = set([w for (w, wc) in cnt.most_common(10)])
 
 
 app = Flask(__name__)
@@ -52,3 +70,4 @@ def fileUpload():
 
 if __name__=='__main__':
     app.run(debug = True)
+

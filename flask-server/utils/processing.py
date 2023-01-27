@@ -17,8 +17,7 @@ train['content']=train['content'].astype(str)
 train['content']=train['content'].str.lower()
 
 
-with open('abbreviations.json') as json_file:
-    abbreviations = json.load(json_file)
+
 
 #functions 
 PUNCT_TO_REMOVE = string.punctuation
@@ -342,9 +341,6 @@ def clean_text(text):
     cleantext=remove_abbreviation(cleantext)
 
     return cleantext
-
-def print_hel():
-    print("hellow")
 
 #conversions
 train['content']=train['content'].apply(remove_punctuation)
