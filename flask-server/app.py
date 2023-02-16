@@ -23,7 +23,6 @@ with open('/utils/abbreviations.json') as json_file:
     abbreviations = json.load(json_file)
 PUNCT_TO_REMOVE = string.punctuation
 ", ".join(stopwords.words('english'))
-FREQWORDS = set([w for (w, wc) in cnt.most_common(10)])
 
 
 app = Flask(__name__)
