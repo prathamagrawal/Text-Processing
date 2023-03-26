@@ -14,11 +14,22 @@ from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 import json
 
+from utils.processing import *
+
+PUNCT_TO_REMOVE = string.punctuation
+", ".join(stopwords.words('english'))
+
 def process(source,attributes):
     data=pd.read_csv(source)
     for item in attributes:
         data[item]=data[item].astype(str)
         data[item]=data[item].str.lower()
+        data[item]=data[item].apply(remove_punctuation)
+        data[item]=data[item].apply(remove_stopwords)
+
+        
+
+
     return data
 
 
@@ -26,7 +37,7 @@ def tidify():
     source=opt.source
     attributes=opt.attribute
     data=process(source,attributes)
-    print(data.head())
+    print(data[attributes[0]][0])
     print(opt)
 
 
