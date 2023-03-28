@@ -15,7 +15,8 @@ import json
 train=pd.read_csv('./data.csv',names=['id','entity','sentiment','content'])
 train['content']=train['content'].astype(str)
 train['content']=train['content'].str.lower()
-
+with open('./utils/abbre.json') as json_file:
+    abbreviations = json.load(json_file)
 
 
 
