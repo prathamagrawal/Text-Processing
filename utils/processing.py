@@ -12,9 +12,9 @@ from nltk.stem import WordNetLemmatizer
 import json
 # from spellchecker import SpellChecker
  
-train=pd.read_csv('./data.csv',names=['id','entity','sentiment','content'])
-train['content']=train['content'].astype(str)
-train['content']=train['content'].str.lower()
+# train=pd.read_csv('./data.csv',names=['id','entity','sentiment','content'])
+# train['content']=train['content'].astype(str)
+# train['content']=train['content'].str.lower()
 with open('./utils/abbre.json') as json_file:
     abbreviations = json.load(json_file)
 
@@ -33,21 +33,22 @@ def remove_stopwords(text):
     return " ".join([word for word in str(text).split() if word not in STOPWORDS])
 
 
-from collections import Counter
-cnt = Counter()
-for text in train["content"].values:
-    for word in text.split():
-        cnt[word] += 1
+# from collections import Counter
+# cnt = Counter()
+# for text in train["content"].values:
+#     for word in text.split():
+#         cnt[word] += 1
 
-
-FREQWORDS = set([w for (w, wc) in cnt.most_common(10)])
+FREQWORDS=[]
+RAREWORDS=[]
+# FREQWORDS = set([w for (w, wc) in cnt.most_common(10)])
 def remove_freqwords(text):
     """custom function to remove the frequent words"""
     return " ".join([word for word in str(text).split() if word not in FREQWORDS])
 
 
-n_rare_words = 10
-RAREWORDS = set([w for (w, wc) in cnt.most_common()[:-n_rare_words-1:-1]])
+# n_rare_words = 10
+# RAREWORDS = set([w for (w, wc) in cnt.most_common()[:-n_rare_words-1:-1]])
 def remove_rarewords(text):
     """custom function to remove the rare words"""
     return " ".join([word for word in str(text).split() if word not in RAREWORDS])
