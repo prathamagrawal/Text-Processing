@@ -32,20 +32,20 @@ def process(source,attributes,freqWords,rareWords):
         data[item]=data[item].apply(remove_punctuation)
         data[item]=data[item].apply(remove_stopwords)
 
-    # if(freqWords or rareWords):
-    #     cnt = Counter()
-    #     for text in data[item].values:
-    #         for word in text.split():
-    #             cnt[word] += 1
+    if(freqWords or rareWords):
+        cnt = Counter()
+        for text in data[item].values:
+            for word in text.split():
+                cnt[word] += 1
 
-    #     if(freqWords):
-    #         FREQWORDS = set([w for (w, wc) in cnt.most_common(10)])
-    #         data[item]=data[item].apply(remove_freqwords)
+        if(freqWords):
+            FREQWORDS = set([w for (w, wc) in cnt.most_common(10)])
+            data[item]=data[item].apply(remove_freqwords)
         
-    #     if(rareWords):
-    #         n_rare_words = 10
-    #         RAREWORDS = set([w for (w, wc) in cnt.most_common()[:-n_rare_words-1:-1]])
-    #         data[item]=data[item].apply(remove_rarewords)
+        if(rareWords):
+            n_rare_words = 10
+            RAREWORDS = set([w for (w, wc) in cnt.most_common()[:-n_rare_words-1:-1]])
+            data[item]=data[item].apply(remove_rarewords)
     
     data[item]=data[item].apply(stem_words)
     data[item]=data[item].apply(lemmatize_words)
