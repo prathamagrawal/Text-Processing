@@ -25,7 +25,7 @@ lemmatizer = WordNetLemmatizer()
 with open('./utils/abbre.json') as json_file:
     abbreviations = json.load(json_file)
 
-def process(source,attributes,freqWords,rareWords):
+def process(source,attributes,freqWords,rareWords,skemmetization,lemmetization):
     data=pd.read_csv(source)
     for item in attributes:
         data[item]=data[item].astype(str)
@@ -47,9 +47,12 @@ def process(source,attributes,freqWords,rareWords):
             n_rare_words = 10
             RAREWORDS = set([w for (w, wc) in cnt.most_common()[:-n_rare_words-1:-1]])
             data[item]=data[item].apply(remove_rarewords)
-    
-    data[item]=data[item].apply(stem_words)
-    data[item]=data[item].apply(lemmatize_words)
+   
+    if(skemmetization):
+        # print("Skemmetization: ")
+        data[item]=data[item].apply(stem_words)
+    if(lemmetization):  
+        data[item]=data[item].apply(lemmatize_words)
     data[item]=data[item].apply(clean_text)
 
 
@@ -61,7 +64,9 @@ def tidify():
     attributes=opt.attribute
     freqWords=opt.remove_frequent
     rareWords=opt.remove_rare
-    data=process(source,attributes,freqWords,rareWords)
+    skemmetization=opt.skemmetization
+    lemmetization=opt.lemmetization
+    data=process(source,attributes,freqWords,rareWords,skemmetization,lemmetization)
     # print(data[attributes[0]][0])
     print("Tidify Called with attributes: ")
     print()
@@ -76,6 +81,8 @@ if __name__ == '__main__':
     parser.add_argument('--source',help='Define source file location',required=True)
     parser.add_argument('--attribute',help='Define attributes you want to process. 3 attributes can be defined.',nargs='+')
     parser.add_argument('--remove_frequent',help="Define true to remove frequent words. Default: False",default=False)
+    parser.add_argument('--skemmetization',help="Define true to apply Skemmetion. Default: False",default=False)
+    parser.add_argument('--lemmetization',help="Define true to apply lemmetization. Default: False",default=False)
     parser.add_argument('--remove_rare',help="Define true to remove rare words. Default: False",default=False)
     
 
