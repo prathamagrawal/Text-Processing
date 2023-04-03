@@ -1,5 +1,6 @@
 import argparse
 import time
+import os
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -61,9 +62,13 @@ def tidify():
     freqWords=opt.remove_frequent
     rareWords=opt.remove_rare
     data=process(source,attributes,freqWords,rareWords)
-    print(data[attributes[0]][0])
+    # print(data[attributes[0]][0])
+    print("Tidify Called with attributes: ")
+    print()
     print(opt)
-
+    print()
+    os.makedirs('output', exist_ok=True)  
+    data.to_csv('output/outData.csv') 
 
 
 if __name__ == '__main__':
